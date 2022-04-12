@@ -9,10 +9,27 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
+from PyQt5.QtMultimedia import *
+from PyQt5.QtMultimediaWidgets import *
+import os
+import sys
+import time
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
+
+        super().__init__()
+
+        # getting available camera
+        self.available_cameras = QCameraInfo.availableCameras()
+
+        # creating a QCameraViewfinder object
+        self.viewfinder = QCameraViewfinder()
+
+        # showing this viewfinder
+        self.viewfinder.show()
 
         # setting up main window
         MainWindow.setObjectName("MainWindow")
@@ -85,7 +102,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addLayout(self.formLayout)
 
         # video widget setup
-        self.Video = QtWidgets.QWidget(self.centralwidget)
+        self.Video = self.viewfinder
+        self.select_camera(0)
+
+        # arguments for the video widget
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(16)
         sizePolicy.setVerticalStretch(9)
@@ -93,6 +113,8 @@ class Ui_MainWindow(object):
         self.Video.setSizePolicy(sizePolicy)
         self.Video.setObjectName("Video")
         self.horizontalLayout_2.addWidget(self.Video)
+
+        # MainWindow setup, I think?
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1090, 26))
@@ -116,6 +138,41 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    # method to select camera
+    def select_camera(self, i):
+        # getting the selected camera
+        self.camera = QCamera(self.available_cameras[i])
+
+        # setting view finder to the camera
+        self.camera.setViewfinder(self.viewfinder)
+
+        # setting capture mode to the camera
+        self.camera.setCaptureMode(QCamera.CaptureStillImage)
+
+        # if any error occur show the alert
+        self.camera.error.connect(lambda: self.alert(self.camera.errorString()))
+
+        # start the camera
+        self.camera.start()
+
+        # creating a QCameraImageCapture object
+        self.capture = QCameraImageCapture(self.camera)
+
+        # showing alert if error occur
+        self.capture.error.connect(lambda error_msg, error,
+                                              msg: self.alert(msg))
+
+        # when image captured showing message
+        self.capture.imageCaptured.connect(lambda d,
+                                                      i: self.status.showMessage("Image captured : "
+                                                                                 + str(self.save_seq)))
+
+        # getting current camera name
+        self.current_camera_name = self.available_cameras[i].description()
+
+        # initial save sequence
+        self.save_seq = 0
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
