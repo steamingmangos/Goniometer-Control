@@ -23,15 +23,17 @@ class Thread1(QThread):
         while True:
             ret1, image1 = self.cap1.read()
             if ret1:
-                im1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
-                print(im1)
-                height1, width1, channel1 = im1.shape
+                im0 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                gray = cv2.cvtColor(im0, cv2.COLOR_GRAY2RGB)
+                #print(gray)
+                height1, width1, channel1 = gray.shape
                 step1 = channel1 * width1
-                qImg1 = QImage(im1.data, width1, height1, step1, QImage.Format_Grayscale16)
+                #print(channel1)
+                qImg1 = QImage(gray.data, width1, height1, step1, QImage.Format_RGB888)
                 #qImg1 = QImage.convertToFormat(QImage.Format_Grayscale16)
-                print(qImg1)
-                print(qImg1.isGrayscale())
-                print("junk")
+                #print(qImg1)
+                #print(qImg1.isGrayscale())
+                #print("junk")
                 self.changePixmap.emit(qImg1)
 
     def stop(self):
