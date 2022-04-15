@@ -17,17 +17,25 @@ class Thread1(QThread):
 
     def run(self):
         self.cap1 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        self.cap1.set(3, 480)
-        self.cap1.set(4, 640)
+        self.cap1.set(3, 720)
+        self.cap1.set(4, 1280)
         self.cap1.set(5, 30)
         while True:
             ret1, image1 = self.cap1.read()
             if ret1:
                 im1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
+                print(im1)
                 height1, width1, channel1 = im1.shape
                 step1 = channel1 * width1
-                qImg1 = QImage(im1.data, width1, height1, step1, QImage.Format_RGB888)
+                qImg1 = QImage(im1.data, width1, height1, step1, QImage.Format_Grayscale16)
+                #qImg1 = QImage.convertToFormat(QImage.Format_Grayscale16)
+                print(qImg1)
+                print(qImg1.isGrayscale())
+                print("junk")
                 self.changePixmap.emit(qImg1)
+
+    def stop(self):
+        self.cap1.release()
 
 
 class Thread2(QThread):
@@ -39,10 +47,10 @@ class Thread2(QThread):
     def run(self):
         if self.active:
             self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            self.out1 = cv2.VideoWriter('output.avi', self.fourcc, 30, (640, 480))
+            self.out1 = cv2.VideoWriter('output.avi', self.fourcc, 30, (1280, 720))
             self.cap1 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            self.cap1.set(3, 480)
-            self.cap1.set(4, 640)
+            self.cap1.set(3, 720)
+            self.cap1.set(4, 1280)
             self.cap1.set(5, 30)
             while self.active:
                 ret1, image1 = self.cap1.read()
@@ -92,6 +100,13 @@ class MainWindow(QWidget):
             self.th2.terminate()
             # update control_bt text
             self.control_bt.setText("START")
+
+    def closeEvent(self, event):
+        self.th1.stop()
+        if can_exit:
+            event.accept()  # let the window close
+        else:
+            event.ignore()
 
 
 if __name__ == '__main__':
