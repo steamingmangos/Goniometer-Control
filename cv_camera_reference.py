@@ -17,8 +17,8 @@ class Thread1(QThread):
 
     def run(self):
         self.cap1 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        self.cap1.set(3, 720)
-        self.cap1.set(4, 1280)
+        self.cap1.set(3, 480)
+        self.cap1.set(4, 640)
         self.cap1.set(5, 30)
         while True:
             ret1, image1 = self.cap1.read()
@@ -48,11 +48,11 @@ class Thread2(QThread):
 
     def run(self):
         if self.active:
-            self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            self.out1 = cv2.VideoWriter('output.avi', self.fourcc, 30, (1280, 720))
+            self.fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+            self.out1 = cv2.VideoWriter('output.mp4', self.fourcc, 30, (640, 480))
             self.cap1 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            self.cap1.set(3, 720)
-            self.cap1.set(4, 1280)
+            self.cap1.set(3, 480)
+            self.cap1.set(4, 640)
             self.cap1.set(5, 30)
             while self.active:
                 ret1, image1 = self.cap1.read()
@@ -105,10 +105,11 @@ class MainWindow(QWidget):
 
     def closeEvent(self, event):
         self.th1.stop()
-        if can_exit:
-            event.accept()  # let the window close
-        else:
-            event.ignore()
+        self.th1.terminate()
+        if self.th2.isRunning():
+            self.th2.stop()
+            self.th2.terminate()
+        event.accept()
 
 
 if __name__ == '__main__':
